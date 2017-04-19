@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.ScatterChart?>
 <?import javafx.scene.control.Button?>
@@ -9,7 +8,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.Pane?>
 
-
 <BorderPane xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.ViewerController">
    <center>
       <ScatterChart fx:id="chart" BorderPane.alignment="CENTER">
@@ -17,7 +15,7 @@
             <NumberAxis side="BOTTOM" fx:id="xAxis" />
           </xAxis>
           <yAxis>
-            <NumberAxis side="LEFT" fx:id="yAxis" />
+            <NumberAxis fx:id="yAxis" side="LEFT" />
           </yAxis>
       </ScatterChart>
    </center>
@@ -34,7 +32,10 @@
    <bottom>
       <AnchorPane prefHeight="50.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
-            <Button fx:id="nextButton" layoutX="238.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionNextButton" text="&gt;" />
+            <Button fx:id="nextButton" layoutX="250.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionNextButton" text="&gt;" />
+            <Button fx:id="backButton" layoutX="225.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionBackButton" text="&lt;" />
+            <Button fx:id="lastButton" layoutX="275.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionLastButton" text="&gt;|" />
+            <Button fx:id="startButton" layoutX="197.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionStartButton" text="|&lt;" />
          </children>
       </AnchorPane>
    </bottom>

@@ -34,7 +34,13 @@ public class ViewerController {
 	private NumberAxis yAxis;
 
 	@FXML
+	private Button startButton;
+	@FXML
 	private Button nextButton;
+	@FXML
+	private Button backButton;
+	@FXML
+	private Button lastButton;
 
 	private ArrayList<Long> noOfEvalList;
 	private ArrayList<Double> bestEvalList;
@@ -94,6 +100,16 @@ public class ViewerController {
 		assert noOfEvalList.size() == bestEvalList.size();
 		assert noOfEvalList.size() == dataList.size();
 
+		onActionStartButton(null);
+	}
+
+	@FXML
+	public void onActionStartButton(ActionEvent event) {
+		startButton.setDisable(true);
+		backButton.setDisable(true);
+		nextButton.setDisable(false);
+		lastButton.setDisable(false);
+
 		index = 0;
 		SetData(index);
 	}
@@ -101,9 +117,40 @@ public class ViewerController {
 	@FXML
 	public void onActionNextButton(ActionEvent event) {
 		index++;
+		if (index == noOfEvalList.size() - 1) {
+			onActionLastButton(event);
+			return;
+		}
 		SetData(index);
-		if (index == noOfEvalList.size() - 1)
-			nextButton.setDisable(true);
+		startButton.setDisable(false);
+		backButton.setDisable(false);
+		nextButton.setDisable(false);
+		lastButton.setDisable(false);
+	}
+
+	@FXML
+	public void onActionBackButton(ActionEvent event) {
+		index--;
+		if (index == 0) {
+			onActionStartButton(event);
+			return;
+		}
+		SetData(index);
+		startButton.setDisable(false);
+		backButton.setDisable(false);
+		nextButton.setDisable(false);
+		lastButton.setDisable(false);
+	}
+
+	@FXML
+	public void onActionLastButton(ActionEvent event) {
+		startButton.setDisable(false);
+		backButton.setDisable(false);
+		nextButton.setDisable(true);
+		lastButton.setDisable(true);
+
+		index = noOfEvalList.size() - 1;
+		SetData(index);
 	}
 
 	/**
