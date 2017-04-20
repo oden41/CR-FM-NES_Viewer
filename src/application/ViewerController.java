@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.chart.NumberAxis;
@@ -15,6 +17,7 @@ import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 
 /**
@@ -44,6 +47,9 @@ public class ViewerController {
 	private Button backButton;
 	@FXML
 	private Button lastButton;
+
+	@FXML
+	private Slider slider;
 
 	private ArrayList<Long> noOfEvalList;
 	private ArrayList<Double> bestEvalList;
@@ -102,6 +108,16 @@ public class ViewerController {
 
 		assert noOfEvalList.size() == bestEvalList.size();
 		assert noOfEvalList.size() == dataList.size();
+
+		slider.valueProperty().addListener(new ChangeListener<Number>() {
+			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
+				double magValue = 1e-5 * Math.exp(new_val.doubleValue() * 5 * Math.log(10));
+				xAxis.setLowerBound(-1 * magValue * 5);
+				xAxis.setUpperBound(magValue * 5);
+				yAxis.setLowerBound(-1 * magValue * 5);
+				yAxis.setUpperBound(magValue * 5);
+			}
+		});
 
 		onActionStartButton(null);
 	}
