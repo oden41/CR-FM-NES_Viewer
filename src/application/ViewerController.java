@@ -11,8 +11,11 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 
 /**
  * @author shumpmita
@@ -163,7 +166,7 @@ public class ViewerController {
 
 		chart.getData().clear();
 		XYChart.Series series = new XYChart.Series();
-		series.setName("Individual");
+		series.setName("個体");
 		double[][] data = dataList.get(index);
 		for (int i = 0; i < data.length; i++) {
 			double[] ds = data[i];
@@ -171,5 +174,30 @@ public class ViewerController {
 			series.getData().add(new XYChart.Data<Double, Double>(ds[0], ds[1]));
 		}
 		chart.getData().add(series);
+
+		// ToolTipを表示
+		// データをchartにセットした後でないと正しく表示されなかったため，この場所での処理
+		for (Series<Double, Double> s : chart.getData()) {
+			for (Data<Double, Double> point : s.getData()) {
+				double x = point.getXValue().doubleValue();
+				double y = point.getYValue().doubleValue();
+				Tooltip.install(point.getNode(),
+						new Tooltip(String.format("(%1.3e, %1.3e), Eval:%1.3e", x, y, ktablet(new double[] { x, y }))));
+			}
+		}
+	}
+
+	private static double ktablet(double[] x) {
+		int k = (int) ((double) x.length / 4.0); //k=n/4
+		double result = 0.0; //評価値を初期化
+		for (int i = 0; i < x.length; ++i) {
+			double xi = x[i]; //i番目の次元の要素
+			if (i < k) {
+				result += xi * xi;
+			} else {
+				result += 10000.0 * xi * xi;
+			}
+		}
+		return result;
 	}
 }
