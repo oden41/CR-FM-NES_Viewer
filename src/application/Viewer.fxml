@@ -38,6 +38,7 @@
             <Button fx:id="backButton" layoutX="225.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionBackButton" text="&lt;" />
             <Button fx:id="lastButton" layoutX="275.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionLastButton" text="&gt;|" />
             <Button fx:id="startButton" layoutX="197.0" layoutY="13.0" mnemonicParsing="false" onAction="#onActionStartButton" text="|&lt;" />
+            <Button fx:id="saveButton" layoutX="445.0" layoutY="13.0" mnemonicParsing="false" onAction="#onSnapShotButtonAction" text="Save" />
          </children>
       </AnchorPane>
    </bottom>
