@@ -60,7 +60,8 @@ public class ViewerController_Canvas {
 	private static int index;
 
 	private FileChooser fileChooser;
-	private final double maxRange = 5;
+	private static final double defaultRange = 5;
+	private static double maxRange = defaultRange;
 
 	@FXML
 	public void initialize() {
@@ -111,8 +112,8 @@ public class ViewerController_Canvas {
 		//1e-5と1(倍率)をeの非線形で結ぶ
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
-				double magValue = 1e-5 * Math.exp(new_val.doubleValue() * maxRange * Math.log(10));
-
+				maxRange = (1e-5 + Math.pow(new_val.doubleValue(), 2) * (1 - 1e-5)) * defaultRange;
+				SetData(index);
 			}
 		});
 
