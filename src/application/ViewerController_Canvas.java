@@ -20,6 +20,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -32,9 +33,10 @@ public class ViewerController_Canvas {
 
 	@FXML
 	private Label noOfEvalLabel;
-
 	@FXML
 	private Label bestEvalLabel;
+	@FXML
+	private Label rangeLabel;
 
 	@FXML
 	private Canvas chart;
@@ -56,6 +58,8 @@ public class ViewerController_Canvas {
 	private ArrayList<Long> noOfEvalList;
 	private ArrayList<Double> bestEvalList;
 	private ArrayList<double[][]> dataList;
+	private ArrayList<double[]> meanList;
+	private ArrayList<double[]> covList;
 
 	private static int index;
 
@@ -72,6 +76,8 @@ public class ViewerController_Canvas {
 		noOfEvalList = new ArrayList<>();
 		bestEvalList = new ArrayList<>();
 		dataList = new ArrayList<>();
+		meanList = new ArrayList<>();
+		covList = new ArrayList<>();
 
 		//logフォルダにあるデータを読み込み
 		File file = new File("./log/BestValue.csv");
@@ -106,8 +112,38 @@ public class ViewerController_Canvas {
 			System.out.println("Population読み込みでエラー");
 		}
 
+		file = new File("./log/Mean.csv");
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+			// オブジェクトに落とし込み
+			String str = "";
+			while ((str = br.readLine()) != null) {
+				double[] array = new double[2];
+				String[] split = str.split(",");
+				array = Stream.of(split).mapToDouble(e -> Double.parseDouble(e)).toArray();
+				meanList.add(array);
+			}
+		} catch (Exception ex) {
+			System.out.println("Population読み込みでエラー");
+		}
+
+		file = new File("./log/Cov.csv");
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+			// オブジェクトに落とし込み
+			String str = "";
+			while ((str = br.readLine()) != null) {
+				double[] array = new double[3];
+				String[] split = str.split(",");
+				array = Stream.of(split).mapToDouble(e -> Double.parseDouble(e)).toArray();
+				covList.add(array);
+			}
+		} catch (Exception ex) {
+			System.out.println("Population読み込みでエラー");
+		}
+
 		assert noOfEvalList.size() == bestEvalList.size();
 		assert noOfEvalList.size() == dataList.size();
+		assert noOfEvalList.size() == meanList.size();
+		assert noOfEvalList.size() == covList.size();
 
 		//1e-5と1(倍率)をeの非線形で結ぶ
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
@@ -194,11 +230,14 @@ public class ViewerController_Canvas {
 	 */
 	private void SetData(int index) {
 		noOfEvalLabel.setText(String.valueOf(noOfEvalList.get(index)));
-		bestEvalLabel.setText(String.valueOf(bestEvalList.get(index)));
+		bestEvalLabel.setText(String.format("%.3e", bestEvalList.get(index)));
+		rangeLabel.setText(String.format("%.2e", maxRange));
 
 		GraphicsContext gc = chart.getGraphicsContext2D();
 		//クリア
 		gc.clearRect(0, 0, chart.getWidth(), chart.getHeight());
+		//高低図
+		drawHeatMap(gc);
 		//外枠を描画
 		drawBorderAndAxis(gc);
 		//データを描画
@@ -227,14 +266,50 @@ public class ViewerController_Canvas {
 		g.strokeLine(canvasWidth / 2, 0, canvasWidth / 2, canvasHeight);
 	}
 
+	private void drawHeatMap(GraphicsContext gc) {
+		final int width = (int) gc.getCanvas().getWidth();
+		final int height = (int) gc.getCanvas().getHeight();
+		double[][] map = new double[width][height];
+		double min = Double.MAX_VALUE;
+		double max = 0;
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				map[i][j] = ktablet(new double[] { inverseX(i), inverseY(j) });
+				if (min > map[i][j])
+					min = map[i][j];
+				if (max < map[i][j])
+					max = map[i][j];
+			}
+		}
+		WritableImage dest = new WritableImage(width, height);
+		PixelWriter writer = dest.getPixelWriter();
+
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				writer.setColor(x, y, Color.gray(Math.pow((map[x][y] - min) / (max - min), 0.25)));
+			}
+		}
+		gc.drawImage(dest, 0, 0);
+	}
+
 	private double transformX(double data) {
 		double range = maxRange;
 		return (data + range) * chart.getWidth() * 0.5 / range;
 	}
 
+	private double inverseX(double width) {
+		double range = maxRange;
+		return 2.0 * range * width / chart.getWidth() - range;
+	}
+
 	private double transformY(double data) {
 		double range = maxRange;
 		return (-data + range) * chart.getHeight() * 0.5 / range;
+	}
+
+	private double inverseY(double height) {
+		double range = maxRange;
+		return range - 2.0 * range * height / chart.getHeight();
 	}
 
 	private static double ktablet(double[] x) {
