@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
@@ -24,6 +22,8 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+
+import javax.imageio.ImageIO;
 
 /**
  * @author shumpmita
@@ -79,7 +79,7 @@ public class ViewerController_Canvas {
 		meanList = new ArrayList<>();
 		covList = new ArrayList<>();
 
-		//logフォルダにあるデータを読み込み
+		// logフォルダにあるデータを読み込み
 		File file = new File("./log/BestValue.csv");
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			// オブジェクトに落とし込み
@@ -89,7 +89,8 @@ public class ViewerController_Canvas {
 				noOfEvalList.add(Long.parseLong(split[0]));
 				bestEvalList.add(Double.parseDouble(split[1]));
 			}
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			System.out.println("BestValue読み込みでエラー");
 		}
 
@@ -108,7 +109,8 @@ public class ViewerController_Canvas {
 				}
 				dataList.add(array);
 			}
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			System.out.println("Population読み込みでエラー");
 		}
 
@@ -122,7 +124,8 @@ public class ViewerController_Canvas {
 				array = Stream.of(split).mapToDouble(e -> Double.parseDouble(e)).toArray();
 				meanList.add(array);
 			}
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			System.out.println("Population読み込みでエラー");
 		}
 
@@ -136,7 +139,8 @@ public class ViewerController_Canvas {
 				array = Stream.of(split).mapToDouble(e -> Double.parseDouble(e)).toArray();
 				covList.add(array);
 			}
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			System.out.println("Population読み込みでエラー");
 		}
 
@@ -145,7 +149,7 @@ public class ViewerController_Canvas {
 		assert noOfEvalList.size() == meanList.size();
 		assert noOfEvalList.size() == covList.size();
 
-		//1e-5と1(倍率)をeの非線形で結ぶ
+		// 1e-5と1(倍率)をeの非線形で結ぶ
 		slider.valueProperty().addListener(new ChangeListener<Number>() {
 			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
 				maxRange = (1e-5 + Math.pow(new_val.doubleValue(), 2) * (1 - 1e-5)) * defaultRange;
@@ -168,7 +172,8 @@ public class ViewerController_Canvas {
 
 			try {
 				ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
-			} catch (IOException e1) {
+			}
+			catch (IOException e1) {
 				// TODO: handle exception here
 			}
 		}
@@ -226,7 +231,9 @@ public class ViewerController_Canvas {
 
 	/**
 	 * ラベルおよびチャートにデータを表示
-	 * @param index 世代
+	 *
+	 * @param index
+	 *                世代
 	 */
 	private void SetData(int index) {
 		noOfEvalLabel.setText(String.valueOf(noOfEvalList.get(index)));
@@ -234,13 +241,15 @@ public class ViewerController_Canvas {
 		rangeLabel.setText(String.format("%.2e", maxRange));
 
 		GraphicsContext gc = chart.getGraphicsContext2D();
-		//クリア
+		// クリア
 		gc.clearRect(0, 0, chart.getWidth(), chart.getHeight());
-		//高低図
+		// 高低図
 		drawHeatMap(gc);
-		//外枠を描画
+		// 楕円
+		drawEllipsoid(gc, meanList.get(index), covList.get(index));
+		// 外枠を描画
 		drawBorderAndAxis(gc);
-		//データを描画
+		// データを描画
 		double[][] data = dataList.get(index);
 		gc.setFill(Color.ORANGE);
 		drawPoint(gc, data);
@@ -292,6 +301,17 @@ public class ViewerController_Canvas {
 		gc.drawImage(dest, 0, 0);
 	}
 
+	private void drawEllipsoid(GraphicsContext gc, double[] mean, double[] cov) {
+		double sigmaU = (cov[0] + cov[2] + Math.sqrt((cov[0] - cov[2]) * (cov[0] - cov[2]) + 4 * cov[1] * cov[1])) / 2.0;
+		double sigmaV = (cov[0] + cov[2] - Math.sqrt((cov[0] - cov[2]) * (cov[0] - cov[2]) + 4 * cov[1] * cov[1])) / 2.0;
+		double rad = Math.atan((sigmaU - cov[0]) / cov[1]);
+		double alpha = rad * 180 / Math.PI;
+		gc.getCanvas().setRotate(-alpha);
+		// 楕円描画
+
+		gc.getCanvas().setRotate(alpha);
+	}
+
 	private double transformX(double data) {
 		double range = maxRange;
 		return (data + range) * chart.getWidth() * 0.5 / range;
@@ -313,13 +333,14 @@ public class ViewerController_Canvas {
 	}
 
 	private static double ktablet(double[] x) {
-		int k = (int) ((double) x.length / 4.0); //k=n/4
-		double result = 0.0; //評価値を初期化
+		int k = (int) ((double) x.length / 4.0); // k=n/4
+		double result = 0.0; // 評価値を初期化
 		for (int i = 0; i < x.length; ++i) {
-			double xi = x[i]; //i番目の次元の要素
+			double xi = x[i]; // i番目の次元の要素
 			if (i < k) {
 				result += xi * xi;
-			} else {
+			}
+			else {
 				result += 10000.0 * xi * xi;
 			}
 		}
