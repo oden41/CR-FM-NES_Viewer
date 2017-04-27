@@ -304,18 +304,17 @@ public class ViewerController_Canvas {
 				/ 2.0;
 		double rad = Math.atan((sigmaU - cov[0]) / cov[1]);
 		double alpha = rad * 180 / Math.PI;
-		double axis1 = Math.sqrt(sigmaU) * gc.getCanvas().getWidth() / maxRange;
-		double axis2 = Math.sqrt(sigmaV) * gc.getCanvas().getHeight() / maxRange;
+		double axis1 = 2.146 * Math.sqrt(sigmaU) * gc.getCanvas().getWidth() / maxRange;
+		double axis2 = 2.146 * Math.sqrt(sigmaV) * gc.getCanvas().getHeight() / maxRange;
 		//x,y:Canvas座標
-		double x = transformX(mean[0]) - axis1;
-		double y = transformY(mean[1]) - axis2;
-		//gc.rotate(-alpha);
+		double x = transformX(mean[0]);
+		double y = transformY(mean[1]);
+		gc.translate(x, y);
 		// 楕円描画
-		gc.strokeOval(x, y, 2 * axis1,
-				2 * axis2);
-		//		gc.strokeOval(200, 225,
-		//				100, 50);
-		//gc.rotate(alpha);
+		gc.rotate(-alpha);
+		gc.strokeOval(-axis1, -axis2, 2 * axis1, 2 * axis2);
+		gc.rotate(alpha);
+		gc.translate(-x, -y);
 	}
 
 	private double transformX(double data) {
