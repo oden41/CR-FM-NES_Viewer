@@ -248,6 +248,7 @@ public class ViewerController_Canvas {
 		drawPoint(gc, data);
 		// 楕円
 		gc.setStroke(Color.GREENYELLOW);
+		gc.setLineWidth(3);
 		drawEllipsoid(gc, meanList.get(index), covList.get(index));
 	}
 
